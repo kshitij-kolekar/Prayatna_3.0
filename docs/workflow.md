@@ -4,7 +4,7 @@
 
 ## 1. System Overview
 
-MediLink is a **real-time healthcare coordination platform** connecting **hospitals, ambulance services, and patients** through a centralized network.
+MediLink is a **real-time healthcare coordination platform** connecting **patients, hospitals, and a central admin authority** through a centralized healthcare network.
 
 The platform helps users:
 
@@ -13,8 +13,18 @@ The platform helps users:
 - Request ambulances
 - Coordinate patient transfers
 - Track emergency resources
+- Resolve conflicts for limited resources
+
+Unlike traditional systems where hospitals make all decisions independently, **MediLink introduces a central Admin role** responsible for **coordination and priority management across the network**.
 
 All users access the system through **role-based dashboards** after authentication.
+
+### System Roles
+
+1️⃣ Patient Dashboard
+2️⃣ Hospital Dashboard
+3️⃣ Admin Dashboard
+
 
 # 2. User Authentication Workflow
 
@@ -50,20 +60,25 @@ Required information:
 - Phone Number
 - Password
 
+### Admin Registration
+
+Admin accounts are created by the system and are responsible for network-wide coordination and decision making.
+
+
+
 ## 2.2 Login Workflow
 
-```
 User → Login Page → Enter Credentials → Backend Authentication (JWT) → Role Verification → Redirect to Dashboard
-```
 
 Possible outcomes:
 
 - Successful login → Dashboard
 - Invalid credentials → Error message
 
+
 # 3. Hospital Dashboard Workflow
 
-Hospitals manage **resources, patient requests, hospital transfers, and ambulances**.
+Hospitals manage local resources, patient requests, ambulance operations, and escalation requests to admin.
 
 ## 3.1 Resource Management Workflow
 
@@ -83,28 +98,69 @@ Resources include:
 
 ```
 Hospital Login
-   ↓
+↓
 Open Resource Management
-   ↓
+↓
 Update Resource Data
-   ↓
+↓
 Backend API Update
-   ↓
+↓
 Database Updated
-   ↓
+↓
 Socket.io Broadcast
-   ↓
+↓
 All dashboards updated in real-time
 ```
 
-## 3.2 Hospital-to-Hospital Request Workflow
+## 3.2 Patient Admission Request Workflow
 
-Hospitals can send requests to other hospitals for:
+Patients send admission requests to hospitals.
 
-- Patient transfers
-- Blood bank support
-- Equipment requests
-- Emergency resource sharing
+### Workflow
+
+```
+Patient
+↓
+Select Hospital
+↓
+Click "Request Admission"
+↓
+Backend Stores Request
+↓
+Hospital Receives Notification
+```
+
+Hospital response options:
+
+- Accept admission
+- Reject admission
+- Escalate to Admin (in case of resource conflict)
+
+Example conflict:
+
+Two patients require ICU
+Only one ICU bed available
+
+In such cases:
+
+```
+Hospital
+↓
+Admin Reviews Patient Severity
+↓
+Admin Makes Final Decision
+```
+
+Possible admin decisions:
+
+- Admit patient immediately
+- Put patient on waitlist
+- Transfer patient to another hospital
+
+
+## 3.3 Hospital-to-Hospital Transfer Workflow
+
+Hospitals may request transfers when resources are unavailable.
 
 ### Example
 
@@ -114,45 +170,27 @@ Hospital A has no ICU beds available.
 
 ```
 Hospital A
-   ↓
-Search Hospitals with Available ICU Beds
-   ↓
+↓
+Escalate Transfer Request
+↓
+Admin Receives Request
+↓
+Admin Searches Hospitals with Available ICU Beds
+↓
 Select Hospital B
-   ↓
-Send Transfer Request
-   ↓
-Request Stored in Database
-   ↓
+↓
+Transfer Approved
+↓
 Hospital B Receives Notification
 ```
 
-### Hospital B Response Options
+Hospital B response options:
 
 - Accept transfer
 - Reject transfer
-- Suggest another hospital
 
-## 3.3 Patient Request Workflow
+The admin coordinates the transfer process.
 
-Patients can send admission requests to hospitals.
-
-### Workflow
-
-```
-Patient
-   ↓
-Select Hospital
-   ↓
-Click "Request Admission"
-   ↓
-Backend Stores Request
-   ↓
-Hospital Receives Notification
-   ↓
-Hospital Accepts / Rejects
-   ↓
-Patient Receives Response
-```
 
 ## 3.4 Ambulance Management Workflow
 
@@ -169,29 +207,113 @@ Hospitals manage ambulances linked to them.
 
 ```
 Hospital Dashboard
-   ↓
+↓
 Open Ambulance Management
-   ↓
+↓
 View Ambulance List
-   ↓
+↓
 Check Status (Available / Busy)
-   ↓
+↓
 Assign Ambulance to Emergency
 ```
 
-# 4. Ambulance Dashboard Workflow
+During large emergencies, admin may also coordinate ambulance allocation.
 
-Ambulance drivers manage **availability and emergency pickup requests**.
+# 4. Admin Dashboard Workflow
 
-## 4.1 Ambulance Availability Workflow
+The Admin dashboard manages network-wide healthcare coordination.
+
+Admin responsibilities include:
+
+- Conflict resolution
+- Resource coordination
+- Patient transfer approval
+- Monitoring hospital network
+
+---
+
+## 4.1 Conflict Resolution Workflow
+
+Conflicts occur when multiple patients require the same limited resource.
+
+Example:
+
+Two patients need ICU
+Only one ICU bed available
+
+### Workflow
+
+```
+Hospital Escalates Conflict
+↓
+Admin Receives Case
+↓
+Admin Reviews Patient Severity
+↓
+Admin Makes Decision
+```
+
+Possible outcomes:
+
+- Admit patient immediately
+- Place patient on waitlist
+- Transfer patient to another hospital
+
+## 4.2 Resource Coordination Workflow
+
+Hospitals manage their own resources, but the **admin manages how resources are used across hospitals**.
+
+Hospitals update:
+
+- ICU beds
+- Ventilators
+- Oxygen supply
+- Blood bank
+- Medical equipment
+
+Admin monitors the **entire network**.
+
+### Example
+
+Hospital A
+
+ICU beds: 0
+
+Hospital B
+
+ICU beds: 3
+
+Admin can coordinate a patient transfer.
+
+### Workflow
+
+```
+Admin Detects Resource Shortage
+↓
+Search Hospitals with Available Resources
+↓
+Approve Transfer
+↓
+Hospital and Patient Notified
+```
+
+This helps balance patient load across hospitals.
+
+
+# 5. Ambulance Dashboard Workflow
+
+Ambulance drivers manage availability and emergency pickup requests.
+
+
+## 5.1 Ambulance Availability Workflow
 
 ```
 Driver Login
-   ↓
+↓
 System Loads Ambulance Profile
-   ↓
+↓
 Status = Available
-   ↓
+↓
 Visible Across MediLink Network
 ```
 
@@ -201,29 +323,31 @@ Drivers can change status to:
 - On Duty
 - Offline
 
-## 4.2 GPS Tracking Workflow
+
+## 5.2 GPS Tracking Workflow
 
 Ambulance location is updated in real-time.
 
 ```
 Driver Device
-   ↓
+↓
 GPS Coordinates Captured
-   ↓
+↓
 Location Sent to Backend
-   ↓
+↓
 Database Updated
-   ↓
+↓
 Displayed on Map
 ```
 
-This allows hospitals and patients to track ambulances live.
+Hospitals and admin can track ambulances live.
 
-# 5. Patient Dashboard Workflow
+
+# 6. Patient Dashboard Workflow
 
 Patients can search hospitals, request admission, and request ambulances.
 
-## 5.1 Search Hospitals Workflow
+## 6.1 Search Hospitals Workflow
 
 Patients search hospitals using filters.
 
@@ -240,11 +364,11 @@ Patients search hospitals using filters.
 
 ```
 Patient Opens Search
-   ↓
+↓
 Apply Filters
-   ↓
+↓
 Backend Query
-   ↓
+↓
 Matching Hospitals Returned
 ```
 
@@ -256,25 +380,29 @@ Displayed information:
 - Resource availability
 - Google Maps location
 
-## 5.2 Admission Request Workflow
+
+
+## 6.2 Admission Request Workflow
 
 ```
 Patient
-   ↓
+↓
 Select Hospital
-   ↓
+↓
 Click "Request Admission"
-   ↓
+↓
 Request Stored in Backend
-   ↓
-Hospital Dashboard Notification
-   ↓
-Hospital Accepts / Rejects
-   ↓
+↓
+Hospital Notification
+↓
+Hospital Accepts / Rejects / Escalates to Admin
+↓
+Admin Decision (if escalated)
+↓
 Patient Receives Response
 ```
 
-## 5.3 Ambulance Request Workflow
+## 6.3 Ambulance Request Workflow
 
 Patients can request nearby ambulances.
 
@@ -282,15 +410,15 @@ Patients can request nearby ambulances.
 
 ```
 Patient Clicks "Request Ambulance"
-   ↓
+↓
 System Finds Nearby Ambulances
-   ↓
+↓
 List Displayed
-   ↓
+↓
 Patient Selects Ambulance
-   ↓
+↓
 Driver Receives Request
-   ↓
+↓
 Driver Accepts / Rejects
 ```
 
@@ -302,7 +430,7 @@ Displayed ambulance information:
 - Estimated arrival time
 - Live location
 
-# 6. Real-Time Data Flow
+# 7. Real-Time Data Flow
 
 Real-time updates are powered by **Socket.io**.
 
@@ -313,22 +441,23 @@ Events include:
 - Emergency requests
 - Transfer requests
 - GPS location updates
+- Admin decisions
 
 ### Data Flow
 
 ```
 User Action
-   ↓
+↓
 Backend API
-   ↓
+↓
 Database Update
-   ↓
+↓
 Socket Event Triggered
-   ↓
+↓
 All Connected Dashboards Updated
 ```
 
-# 7. Notification Workflow
+# 8. Notification Workflow
 
 Notifications are generated for:
 
@@ -336,20 +465,21 @@ Notifications are generated for:
 - Transfer requests
 - Ambulance requests
 - Resource alerts
+- Admin decisions
 
 ### Workflow
 
 ```
 Event Occurs
-   ↓
+↓
 Notification Service Triggered
-   ↓
+↓
 Push Notification Sent
-   ↓
+↓
 User Takes Action
 ```
 
-# 8. Error Handling Workflow
+# 9. Error Handling Workflow
 
 Possible system issues:
 
@@ -357,11 +487,40 @@ Possible system issues:
 - Ambulance unavailable
 - Request timeout
 - GPS tracking failure
+- Resource shortages across hospitals
 
 ### System Response
 
 - Display error message
 - Suggest alternative hospitals
+- Escalate to admin
 - Retry request
 - Log system errors
+
+# 10. Key Concept
+
+The system operates on **two levels of resource management**.
+
+### Local Resource Management
+
+Hospitals manage their own resources.
+
+Examples:
+
+- Update bed count
+- Update ventilators
+- Update oxygen supply
+
+### Network Resource Management
+
+Admin coordinates resources between hospitals.
+
+Examples:
+
+- Resolving conflicts
+- Finding hospitals with available resources
+- Approving transfers
+- Balancing patient load
+
+
 

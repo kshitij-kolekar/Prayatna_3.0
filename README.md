@@ -14,6 +14,7 @@ Project documentation is organized inside the `docs` directory.
 |---------|-------------|
 | [Workflow](docs/workflow.md) | Detailed workflow for patients, hospitals, and ambulance services |
 | [Role Permissions](docs/role-permissions.md) | Role-based access control definitions |
+| [API Contract](docs/api-contract.md) | Complete REST API specification |
 
 ```
 
