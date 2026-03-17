@@ -128,6 +128,7 @@ Example:
   }
 }
 ```
+
 ## Logout
 
 ### Endpoint
@@ -167,6 +168,7 @@ Example:
   }
 }
 ```
+
 ## Search Hospitals
 
 Allows patients to search hospitals based on resource availability.
@@ -197,9 +199,7 @@ Allows patients to search hospitals based on resource availability.
 
 ### Endpoint
 
-`
-GET /api/v1/hospitals/{hospital_id}
-`
+`GET /api/v1/hospitals/{hospital_id}`
 
 ### Response
 
@@ -219,9 +219,7 @@ GET /api/v1/hospitals/{hospital_id}
 
 ### Endpoint
 
-``
-GET /api/v1/hospitals/{hospital_id}/requests
-``
+``GET /api/v1/hospitals/{hospital_id}/requests``
 
 ### Response
 
@@ -244,9 +242,7 @@ GET /api/v1/hospitals/{hospital_id}/requests
 
 ### Endpoint
 
-`
-GET /api/v1/hospitals/{hospital_id}/resources
-`
+`GET /api/v1/hospitals/{hospital_id}/resources`
 
 ### Response
 
@@ -266,9 +262,7 @@ GET /api/v1/hospitals/{hospital_id}/resources
 
 ### Endpoint
 
-`
-PUT /api/v1/hospitals/{hospital_id}/resources
-`
+`PUT /api/v1/hospitals/{hospital_id}/resources`
 
 ### Request Body
 
@@ -296,9 +290,7 @@ PUT /api/v1/hospitals/{hospital_id}/resources
 
 ### Endpoint
 
-`
-GET /api/v1/hospitals/{hospital_id}/blood-bank
-`
+`GET /api/v1/hospitals/{hospital_id}/blood-bank`
 
 ### Response
 
@@ -322,9 +314,7 @@ GET /api/v1/hospitals/{hospital_id}/blood-bank
 
 ### Endpoint
 
-`
-PUT /api/v1/hospitals/{hospital_id}/blood-bank
-`
+`PUT /api/v1/hospitals/{hospital_id}/blood-bank`
 
 ### Request Body
 
@@ -341,9 +331,7 @@ PUT /api/v1/hospitals/{hospital_id}/blood-bank
 
 ### Endpoint
 
-`
-GET /api/v1/ambulances
-`
+`GET /api/v1/ambulances`
 
 ### Response
 
@@ -364,9 +352,7 @@ GET /api/v1/ambulances
 
 ### Endpoint
 
-`
-PUT /api/v1/ambulances/{ambulance_id}/status
-`
+`PUT /api/v1/ambulances/{ambulance_id}/status`
 
 ### Request
 
@@ -380,9 +366,7 @@ PUT /api/v1/ambulances/{ambulance_id}/status
 
 ### Endpoint
 
-`
-POST /api/v1/ambulances/{ambulance_id}/location
-`
+`POST /api/v1/ambulances/{ambulance_id}/location`
 
 ### Request
 
@@ -401,9 +385,7 @@ Used by patients to create admission or ambulance requests.
 
 ### Endpoint
 
-`
-POST /api/v1/requests
-`
+`POST /api/v1/requests`
 
 ### Request Body
 
@@ -432,9 +414,7 @@ POST /api/v1/requests
 
 ### Endpoint
 
-`
-GET /api/v1/requests/my
-`
+`GET /api/v1/requests/my`
 
 ### Response
 
@@ -455,9 +435,7 @@ GET /api/v1/requests/my
 
 ### Endpoint
 
-`
-PATCH /api/v1/requests/{request_id}/status
-`
+`PATCH /api/v1/requests/{request_id}/status`
 
 ### Request
 
@@ -473,9 +451,7 @@ PATCH /api/v1/requests/{request_id}/status
 
 ### Endpoint
 
-`
-GET /api/v1/notifications
-`
+`GET /api/v1/notifications`
 
 ### Response
 
@@ -495,9 +471,7 @@ GET /api/v1/notifications
 
 ### Endpoint
 
-`
-PATCH /api/v1/notifications/{notification_id}/read
-`
+`PATCH /api/v1/notifications/{notification_id}/read`
 
 ### Response
 
@@ -505,6 +479,285 @@ PATCH /api/v1/notifications/{notification_id}/read
 {
   "status": "success",
   "message": "Notification marked as read"
+}
+```
+
+# 9. Conflict Admin APIs
+
+Conflict Admins handle only resource conflict resolution when hospitals escalate cases.
+
+Examples:
+
+- Two patients require the same ICU bed
+- Ventilator shortage
+- Emergency patient prioritization
+- Transfer decision between hospitals
+
+Conflict Admins cannot manage hospitals, users, or system configuration.
+
+## Get Escalated Conflicts
+
+Returns all unresolved conflict cases escalated by hospitals.
+
+### Endpoint
+
+`GET /api/v1/admin/conflicts`
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "conflict_id": "uuid",
+      "hospital_id": "uuid",
+      "requested_resource": "ICU",
+      "patient_count": 2,
+      "status": "PENDING"
+    }
+  ]
+}
+```
+
+## Get Conflict Details
+
+Returns full details of a specific conflict case.
+
+### Endpoint
+
+`GET /api/v1/admin/conflicts/{conflict_id}`
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "conflict_id": "uuid",
+    "hospital_id": "uuid",
+    "patients": [
+      {
+        "patient_id": "uuid",
+        "severity": "CRITICAL"
+      }
+    ],
+    "requested_resource": "ICU"
+  }
+}
+```
+
+## Resolve Conflict
+
+Admin decides which patient receives the resource.
+
+### Endpoint
+
+`PATCH /api/v1/admin/conflicts/{conflict_id}/resolve`
+
+### Request Body
+
+```json
+{
+  "decision": "APPROVE",
+  "patient_id": "uuid"
+}
+```
+
+Possible values for decision:
+
+* `APPROVE`
+* `WAITLIST`
+* `TRANSFER`
+* `REJECT`
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Conflict resolved successfully"
+}
+```
+
+## Transfer Patient
+
+Transfers a patient to another hospital if resources are unavailable.
+
+### Endpoint
+
+`POST /api/v1/admin/conflicts/{conflict_id}/transfer`
+
+### Request Body
+
+```json
+{
+  "patient_id": "uuid",
+  "target_hospital_id": "uuid"
+}
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Patient transfer initiated"
+}
+```
+
+## Get Conflict History
+
+Returns previously resolved conflicts.
+
+### Endpoint
+
+`GET /api/v1/admin/conflicts/history`
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": []
+}
+```
+
+# 10. System Admin APIs
+
+System Admins manage the ​MediLink platform and network operations.
+
+Responsibilities include:
+
+* Managing hospitals
+* Managing users
+* Monitoring system activity
+* Managing ambulance network
+* Sending system notifications
+
+System Admins ​do not resolve medical resource conflicts​.
+
+## Get All Hospitals
+
+### Endpoint
+
+`GET /api/v1/admin/hospitals`
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "hospital_id": "uuid",
+      "name": "City Care Hospital",
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+
+## Approve Hospital Registration
+
+### Endpoint
+
+`PATCH /api/v1/admin/hospitals/{hospital_id}/approve`
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Hospital approved successfully"
+}
+```
+
+## Disable Hospital
+
+### Endpoint
+
+```PATCH /api/v1/admin/hospitals/{hospital_id}/disable```
+
+## Get All Users
+
+### Endpoint
+
+```GET /api/v1/admin/users```
+
+## Suspend User
+
+### Endpoint
+
+``PATCH /api/v1/admin/users/{user_id}/suspend``
+
+## Get Ambulances
+
+### Endpoint
+
+`GET /api/v1/admin/ambulances`
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "ambulance_id": "uuid",
+      "driver_name": "Amit Singh",
+      "status": "AVAILABLE"
+    }
+  ]
+}
+```
+
+## Register Ambulance
+
+### Endpoint
+
+```POST /api/v1/admin/ambulances```
+
+### Request Body
+
+```json
+{
+  "driver_name": "Amit Singh",
+  "ambulance_number": "MH12AB1234"
+}
+```
+
+## Get System Statistics
+
+### Endpoint
+
+```GET /api/v1/admin/stats```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "total_hospitals": 20,
+    "total_patients": 350,
+    "total_ambulances": 45,
+    "active_requests": 12
+  }
+}
+```
+
+## Send System Notification
+
+### Endpoint
+
+```POST /api/v1/admin/notifications```
+
+### Request Body
+
+```json
+{
+  "message": "Emergency alert: Oxygen shortage reported in region"
 }
 ```
 
@@ -541,5 +794,4 @@ PATCH /api/v1/notifications/{notification_id}/read
 5. Ambulance drivers can only update ​**their assigned ambulance status and location**​.
 6. Role-based permissions are enforced for all protected routes.
 7. All critical actions such as ​**resource updates and request status changes are logged**​.
-
 
