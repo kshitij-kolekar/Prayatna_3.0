@@ -12,11 +12,11 @@ const prisma = new PrismaClient();
 const hospitals = [
   {
     id: 'h1',
-    name: 'Apollo Multispeciality Hospital',
-    address: 'Jubilee Hills, Hyderabad, Telangana 500033',
-    city: 'Hyderabad', state: 'Telangana', pincode: '500033',
-    phone: '+91 40-2355-8888', email: 'info@apollohyd.com',
-    lat: 17.4326, lng: 78.4071,
+    name: 'Apollo Hospitals Bengaluru',
+    address: '154/11, Bannerghatta Road, Bengaluru, Karnataka 560076',
+    city: 'Bengaluru', state: 'Karnataka', pincode: '560076',
+    phone: '+91 80-2630-4050', email: 'info@apollobng.com',
+    lat: 12.8953, lng: 77.5985,
     image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=250&fit=crop',
     rating: 4.7,
     accreditation: 'NABH', password: 'apollo123',
@@ -171,14 +171,14 @@ const hospitals = [
   },
   {
     id: 'h6',
-    name: 'Christian Medical College (CMC)',
-    address: 'Ida Scudder Road, Vellore, Tamil Nadu 632004',
-    city: 'Vellore', state: 'Tamil Nadu', pincode: '632004',
-    phone: '+91 416-228-1000', email: 'info@cmcvellore.ac.in',
-    lat: 12.9249, lng: 79.1338,
+    name: 'St John\'s Medical College Hospital',
+    address: 'Sarjapur Road, John Nagar, Koramangala, Bengaluru, Karnataka 560034',
+    city: 'Bengaluru', state: 'Karnataka', pincode: '560034',
+    phone: '+91 80-2206-5000', email: 'info@stjohns.in',
+    lat: 12.9304, lng: 77.6189,
     image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&h=250&fit=crop',
     rating: 4.8,
-    accreditation: 'NABH', password: 'cmc123',
+    accreditation: 'NABH', password: 'stjohns123',
     resources: {
       totalBeds: 2700, availableBeds: 380, totalIcuBeds: 180, availableIcuBeds: 38,
       totalVentilators: 100, availableVentilators: 32,
@@ -396,7 +396,7 @@ const patientRequests = [
 
   // Ambulance Requests
   { toAmbulanceId: 'a1', hospitalId: 'h2', patientName: 'Rohit Verma', patientPhone: '+91 77665 54433', type: 'ambulance-request', pickupLocation: 'Connaught Place, New Delhi', condition: 'Unconscious person, possible heatstroke', urgency: 'critical', priority: 'CRITICAL', status: 'PENDING' },
-  { toAmbulanceId: 'a2', hospitalId: 'h1', patientName: 'Sita Ram', patientPhone: '+91 99000 11000', type: 'ambulance-request', pickupLocation: 'Hitech City, Hyderabad', condition: 'Breathlessness, asthma attack', urgency: 'high', priority: 'HIGH', status: 'PENDING' },
+  { toAmbulanceId: 'a2', hospitalId: 'h1', patientName: 'Sita Ram', patientPhone: '+91 99000 11000', type: 'ambulance-request', pickupLocation: 'Bannerghatta Road, Bengaluru', condition: 'Breathlessness, asthma attack', urgency: 'high', priority: 'HIGH', status: 'PENDING' },
   { toAmbulanceId: 'a3', hospitalId: 'h7', patientName: 'Kevin Peters', patientPhone: '+91 12345 67890', type: 'ambulance-request', pickupLocation: 'MG Road, Bangalore', condition: 'Chest pain, sweating', urgency: 'critical', priority: 'CRITICAL', status: 'ACCEPTED' },
   { toAmbulanceId: 'a6', hospitalId: 'h5', patientName: 'Lata Mangeshkar', type: 'ambulance-request', pickupLocation: 'Andheri West, Mumbai', condition: 'Weakness, unable to walk', urgency: 'normal', priority: 'MEDIUM', status: 'PENDING' },
   { toAmbulanceId: 'a7', hospitalId: 'h11', patientName: 'Arun Gawli', type: 'ambulance-request', pickupLocation: 'Bandra Reclamation, Mumbai', condition: 'Stomach pain, severe', urgency: 'high', priority: 'HIGH', status: 'PENDING' },
@@ -472,7 +472,7 @@ async function main() {
   // Insert demo Ambulances
   const ambulances = [
     { id: 'a1', driverName: 'Raju Prasad', email: 'raju@gmail.com', vehicleNo: 'DL-01-AB-1234', phone: '+919876543210', password: 'raju123', hospitalId: 'h2', type: 'ALS', lat: 28.5730, lng: 77.2150, status: 'available' },
-    { id: 'a2', driverName: 'Suresh Kumar', email: 'suresh@medilink.com', vehicleNo: 'TS-09-EA-5678', phone: '+919988776655', password: 'ambulance123', hospitalId: 'h1', type: 'BLS', lat: 17.4350, lng: 78.4100, status: 'available' },
+    { id: 'a2', driverName: 'Suresh Kumar', email: 'suresh@medilink.com', vehicleNo: 'KA-09-EA-5678', phone: '+919988776655', password: 'ambulance123', hospitalId: 'h1', type: 'BLS', lat: 12.8960, lng: 77.5990, status: 'available' },
     { id: 'a3', driverName: 'Vikram Singh', email: 'vikram@medilink.com', vehicleNo: 'KA-01-MG-9012', phone: '+919876543211', password: 'ambulance123', hospitalId: 'h7', type: 'ALS', lat: 12.9600, lng: 77.6500, status: 'available' },
     { id: 'a4', driverName: 'Mohit Sharma', email: 'mohit@medilink.com', vehicleNo: 'DL-02-CB-4321', phone: '+919876543212', password: 'ambulance123', hospitalId: 'h2', type: 'BLS', lat: 28.5600, lng: 77.2000, status: 'available' },
     { id: 'a5', driverName: 'Anil Gupta', email: 'anil@medilink.com', vehicleNo: 'MH-01-RT-8888', phone: '+919876543213', password: 'ambulance123', hospitalId: 'h5', type: 'ALS', lat: 19.1300, lng: 72.8300, status: 'available' },
@@ -485,7 +485,7 @@ async function main() {
     { id: 'a12', driverName: 'Hrithik Roshan', email: 'hrithik@medilink.com', vehicleNo: 'KA-02-HR-7777', phone: '+919876543220', password: 'ambulance123', hospitalId: 'h7', type: 'BLS', lat: 12.9500, lng: 77.6400, status: 'available' },
     { id: 'a13', driverName: 'Ranbir Kapoor', email: 'ranbir@medilink.com', vehicleNo: 'DL-05-RK-8888', phone: '+919876543221', password: 'ambulance123', hospitalId: 'h2', type: 'ALS', lat: 28.5800, lng: 77.2200, status: 'available' },
     { id: 'a14', driverName: 'Ranveer Singh', email: 'ranveer@medilink.com', vehicleNo: 'MH-06-RS-9999', phone: '+919876543222', password: 'ambulance123', hospitalId: 'h5', type: 'BLS', lat: 19.1400, lng: 72.8400, status: 'available' },
-    { id: 'a15', driverName: 'John Abraham', email: 'john@medilink.com', vehicleNo: 'DL-06-JA-0000', phone: '+919876543223', password: 'ambulance123', hospitalId: 'h1', type: 'ALS', lat: 17.4400, lng: 78.4200, status: 'available' },
+    { id: 'a15', driverName: 'John Abraham', email: 'john@medilink.com', vehicleNo: 'KA-06-JA-0000', phone: '+919876543223', password: 'ambulance123', hospitalId: 'h1', type: 'ALS', lat: 12.8990, lng: 77.6020, status: 'available' },
   ];
 
   for (const amb of ambulances) {

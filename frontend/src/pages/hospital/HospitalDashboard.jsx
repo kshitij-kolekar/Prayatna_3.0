@@ -86,9 +86,28 @@ export default function HospitalDashboard() {
     );
   }
 
-  // ── Nearby hospitals (filter out self) ────────────────────────────────────
+  const getDistanceValue = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in km
+  };
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const d = getDistanceValue(lat1, lon1, lat2, lon2);
+    return d === Infinity ? '' : d.toFixed(1) + ' km away';
+  };
+
+  // ── Nearby hospitals (filter out self, limit to 50km, sort by distance) ──
   const nearbyHospitals = allHospitals
     .filter(h => h && h.id !== hospital.id && h.beds && h.ventilators)
+    .filter(h => getDistanceValue(hospital.lat, hospital.lng, h.lat, h.lng) <= 50)
+    .sort((a, b) => getDistanceValue(hospital.lat, hospital.lng, a.lat, a.lng) - getDistanceValue(hospital.lat, hospital.lng, b.lat, b.lng))
     .slice(0, 9);
 
   const mapMarkers = allHospitals
@@ -104,18 +123,6 @@ export default function HospitalDashboard() {
         ],
       },
     }));
-
-  const getDistance = (lat1, lon1, lat2, lon2) => {
-    if (!lat1 || !lon1 || !lat2 || !lon2) return '';
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return (R * c).toFixed(1) + ' km away';
-  };
 
   return (
     <div>
