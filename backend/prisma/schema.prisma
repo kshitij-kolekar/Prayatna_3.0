@@ -1,0 +1,220 @@
+// MediLink Prisma Schema
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Hospital Profile ──────────────────────────────────────────────────────────
+model Hospital {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  address       String?
+  city          String?
+  state         String?
+  pincode       String?
+  lat           Float?
+  lng           Float?
+  image         String?
+  rating        Float    @default(4.5)
+  accreditation String?
+  password      String   @default("hospital123") // for demo login
+
+  // Relations
+  resources      HospitalResource?
+  specialists    Specialist[]
+  equipment      Equipment[]
+  updateHistory  ResourceUpdateHistory[]
+  patientRequests PatientRequest[]
+  ambulances     Ambulance[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ─── Hospital Resources (1-to-1 with Hospital) ────────────────────────────────
+model HospitalResource {
+  id                    String   @id @default(uuid())
+  hospitalId            String   @unique
+  hospital              Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  // Beds
+  totalBeds             Int      @default(0)
+  availableBeds         Int      @default(0)
+  totalIcuBeds          Int      @default(0)
+  availableIcuBeds      Int      @default(0)
+
+  // Ventilators
+  totalVentilators      Int      @default(0)
+  availableVentilators  Int      @default(0)
+
+  // Oxygen (in liters)
+  oxygenCapacity        Int      @default(0)
+  oxygenAvailable       Int      @default(0)
+
+  // Blood Bank (units per type)
+  bloodAPos             Int      @default(0)
+  bloodANeg             Int      @default(0)
+  bloodBPos             Int      @default(0)
+  bloodBNeg             Int      @default(0)
+  bloodABPos            Int      @default(0)
+  bloodABNeg            Int      @default(0)
+  bloodOPos             Int      @default(0)
+  bloodONeg             Int      @default(0)
+
+  updatedAt             DateTime @updatedAt
+}
+
+// ─── Specialists / Doctors ────────────────────────────────────────────────────
+model Specialist {
+  id         String   @id @default(uuid())
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  name       String
+  specialty  String
+  available  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ─── Equipment ────────────────────────────────────────────────────────────────
+model Equipment {
+  id         String   @id @default(uuid())
+  hospitalId String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  name       String
+  model      String?
+  quantity   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ─── Patient Profile ──────────────────────────────────────────────────────────
+model Patient {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String   @unique
+  password  String
+  requests  PatientRequest[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Ambulance Profile ────────────────────────────────────────────────────────
+model Ambulance {
+  id          String   @id @default(uuid())
+  driverName  String
+  email       String   @unique
+  vehicleNo   String   @unique
+  phone       String
+  password    String
+  type        String   @default("BLS") // BLS, ALS
+  status      String   @default("available") // available, busy, offline
+  
+  lat         Float?
+  lng         Float?
+  
+  hospitalId  String
+  hospital    Hospital @relation(fields: [hospitalId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requests    PatientRequest[]
+}
+
+// ─── System Users (Admin / System Doctors) ───────────────────────────────────
+model SystemUser {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      SystemRole @default(DOCTOR)
+  
+  assignedRequests PatientRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SystemRole {
+  ADMIN
+  DOCTOR
+}
+
+// ─── Patient Requests & Conflict Resolution ──────────────────────────────────
+model PatientRequest {
+  id           String   @id @default(uuid())
+  
+  // Target
+  hospitalId   String?
+  hospital     Hospital? @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  
+  toAmbulanceId String?
+  ambulance    Ambulance? @relation(fields: [toAmbulanceId], references: [id])
+
+  // Origin
+  patientId    String?
+  patient      Patient?  @relation(fields: [patientId], references: [id])
+  fromHospitalId String?
+
+  patientName  String?
+  patientPhone String?
+  type         String     // e.g. "patient-admission", "hospital-transfer", "blood-request", "equipment-request", "ambulance-request"
+  condition    String?
+  urgency      String?
+  
+  // Metadata fields
+  facility       String?
+  bloodType      String?
+  units          Int?
+  transferReason String?
+  pickupLocation String?
+  notes          String?
+  responseNotes  String?
+  
+  priority     RequestPriority @default(MEDIUM)
+  status       RequestStatus   @default(PENDING)
+  
+  // Assigned system doctor (for conflict resolution)
+  assignedDoctorId String?
+  assignedDoctor   SystemUser? @relation(fields: [assignedDoctorId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum RequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  ASSIGNED
+  RESOLVED
+  COMPLETED
+}
+
+// ─── Resource Update History (audit trail) ────────────────────────────────────
+model ResourceUpdateHistory {
+  id           String   @id @default(uuid())
+  hospitalId   String
+  hospital     Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  resourceType String   // e.g. "availableBeds", "bloodAPos"
+  oldValue     String?
+  newValue     String
+  updatedAt    DateTime @default(now())
+}
